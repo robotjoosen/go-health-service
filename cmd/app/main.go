@@ -17,41 +17,10 @@ import (
 	"github.com/mackerelio/go-osstat/disk"
 	"github.com/mackerelio/go-osstat/memory"
 	"github.com/mackerelio/go-osstat/network"
+	"github.com/robotjoosen/go-health-service/pkg/domain"
 	"github.com/robotjoosen/go-rabbit"
 	"github.com/wagslane/go-rabbitmq"
 )
-
-type SysUsageMessage struct {
-	Name string           `json:"name"`
-	Mem  MemoryMessage    `json:"memory"`
-	Cpu  CPUMessage       `json:"cpu"`
-	Nic  []NetworkMessage `json:"network_interfaces"`
-	Dsk  []DiskMessage    `json:"disks"`
-}
-
-type MemoryMessage struct {
-	Free  uint64 `json:"free"`
-	Used  uint64 `json:"used"`
-	Total uint64 `json:"total"`
-}
-
-type CPUMessage struct {
-	System float64 `json:"system"`
-	Idle   float64 `json:"idle"`
-	User   float64 `json:"user"`
-}
-
-type NetworkMessage struct {
-	Name string `json:"name"`
-	Rx   uint64 `json:"rx_bytes"`
-	Tx   uint64 `json:"tx_bytes"`
-}
-
-type DiskMessage struct {
-	Name   string `json:"name"`
-	Reads  uint64 `json:"reads"`
-	Writes uint64 `json:"writes"`
-}
 
 const maxRetries = 100
 
@@ -71,7 +40,7 @@ func main() {
 	}
 
 	for {
-		messageData := SysUsageMessage{
+		messageData := domain.SysUsageMessage{
 			Name: hostname,
 		}
 
@@ -90,7 +59,7 @@ func main() {
 		}
 		total := float64(after.Total - before.Total)
 
-		messageData.Cpu = CPUMessage{
+		messageData.Cpu = domain.CPUMessage{
 			System: float64(after.System-before.System) / total * 100,
 			User:   float64(after.User-before.User) / total * 100,
 			Idle:   float64(after.Idle-before.Idle) / total * 100,
@@ -103,7 +72,7 @@ func main() {
 			continue
 		}
 
-		messageData.Mem = MemoryMessage{
+		messageData.Mem = domain.MemoryMessage{
 			Free:  memoryStats.Free,
 			Used:  memoryStats.Used,
 			Total: memoryStats.Total,
@@ -116,9 +85,9 @@ func main() {
 			continue
 		}
 
-		messageData.Nic = make([]NetworkMessage, 0, len(networkStats))
+		messageData.Nic = make([]domain.NetworkMessage, 0, len(networkStats))
 		for _, n := range networkStats {
-			messageData.Nic = append(messageData.Nic, NetworkMessage{
+			messageData.Nic = append(messageData.Nic, domain.NetworkMessage{
 				Name: n.Name,
 				Rx:   n.RxBytes,
 				Tx:   n.TxBytes,
@@ -132,9 +101,9 @@ func main() {
 			continue
 		}
 
-		messageData.Dsk = make([]DiskMessage, 0, len(diskStats))
+		messageData.Dsk = make([]domain.DiskMessage, 0, len(diskStats))
 		for _, d := range diskStats {
-			messageData.Dsk = append(messageData.Dsk, DiskMessage{
+			messageData.Dsk = append(messageData.Dsk, domain.DiskMessage{
 				Name:   d.Name,
 				Reads:  d.ReadsCompleted,
 				Writes: d.WritesCompleted,
