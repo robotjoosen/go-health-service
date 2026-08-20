@@ -1,11 +1,12 @@
-package domain
+package metrics
 
 type SysUsageMessage struct {
-	Name string           `json:"name"`
-	Mem  MemoryMessage    `json:"memory"`
-	Cpu  CPUMessage       `json:"cpu"`
-	Nic  []NetworkMessage `json:"network_interfaces"`
-	Dsk  []DiskMessage    `json:"disks"`
+	Name string               `json:"name"`
+	Mem  MemoryMessage        `json:"memory"`
+	Cpu  CPUMessage           `json:"cpu"`
+	Nic  []NetworkMessage     `json:"network_interfaces"`
+	Dsk  []DiskMessage        `json:"disks"`
+	Tmp  []TemperatureMessage `json:"temperatures"`
 }
 
 type MemoryMessage struct {
@@ -30,4 +31,9 @@ type DiskMessage struct {
 	Name   string `json:"name"`
 	Reads  uint64 `json:"reads"`
 	Writes uint64 `json:"writes"`
+}
+
+type TemperatureMessage struct {
+	Name    string  `json:"name"`
+	Celsius float64 `json:"celsius"`
 }
