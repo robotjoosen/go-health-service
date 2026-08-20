@@ -4,62 +4,19 @@ dotenv: ['.env','.env.dist']
 
 tasks:
   install:
-    vars:
-      BINARY_PATH: "./bin/health-service"
-      INSTALL_PATH: "/usr/local/bin/health-service"
-      SERVICE_NAME: "health_service"
-      SERVICE_DESCRIPTION: "Health Service application"
     platforms: [linux/arm64, linux/arm]
     cmds:
-      - cp "{{.BINARY_PATH}}" "{{.INSTALL_PATH}}"
-      - sudo chmod +x "{{.INSTALL_PATH}}"
-      - | 
-          bash -c "cat > /etc/systemd/system/{{.SERVICE_NAME}}.service" <<EOF
-          [Unit]
-          Description={{.SERVICE_DESCRIPTION}}
-          After=network.target
-
-          [Service]
-          Type=simple
-          ExecStart={{.INSTALL_PATH}}
-          Restart=on-failure
-          User=$USER
-          WorkingDirectory=/
-          Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-          Environment=MESSAGE_BUS_URL=$MESSAGE_BUS_URL
-          Environment=MESSAGE_BUS_EXCHANGE=$MESSAGE_BUS_EXCHANGE
-          Environment=MESSAGE_BUS_ROUTINGKEY=$MESSAGE_BUS_ROUTINGKEY
-
-          [Install]
-          WantedBy=multi-user.target
-          EOF
-      - sudo systemctl daemon-reexec
-      - sudo systemctl daemon-reload
-      - sudo systemctl enable "{{.SERVICE_NAME}}"
-      - sudo systemctl start "{{.SERVICE_NAME}}"
+      - ./scripts/install.sh
 
   uninstall:
-    vars:
-      BINARY_PATH: "./bin/health-service"
-      INSTALL_PATH: "/usr/local/bin/health-service"
-      SERVICE_NAME: "health_service"
     platforms: [linux/arm64, linux/arm]
     cmds:
-      - systemctl stop "{{.SERVICE_NAME}}"
-      - rm {{.INSTALL_PATH}}
-      - rm {{.SERVICE_FILE}}
-      - systemctl daemon-reexec
-      - systemctl daemon-reload
+      - ./scripts/uninstall.sh
 
   update:
-    vars:
-      BINARY_PATH: "./bin/health-service"
-      INSTALL_PATH: "/usr/local/bin/health-service"
-      SERVICE_NAME: "health_service"
     platforms: [linux/arm64, linux/arm]
     cmds:
-      - cp "{{.BINARY_PATH}}" "{{.INSTALL_PATH}}"
-      - sudo systemctl restart "{{.SERVICE_NAME}}"
+      - ./scripts/update.sh
 
   build:
     vars: 

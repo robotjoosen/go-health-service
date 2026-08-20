@@ -1,0 +1,44 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Build linux/arm64
+        env:
+          GOOS: linux
+          GOARCH: arm64
+          CGO_ENABLED: 0
+        run: go build -o dist/health-service-linux-arm64 ./cmd/app
+
+      - name: Build linux/arm
+        env:
+          GOOS: linux
+          GOARCH: arm
+          CGO_ENABLED: 0
+        run: go build -o dist/health-service-linux-arm ./cmd/app
+
+      # Asset names must stay exactly health-service-linux-arm64 / health-service-linux-arm --
+      # install.sh and update.sh look them up by this exact name.
+      - name: Create release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            dist/health-service-linux-arm64 \
+            dist/health-service-linux-arm \
+            --title "${{ github.ref_name }}" \
+            --generate-notes
