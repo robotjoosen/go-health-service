@@ -6,6 +6,8 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"flag"
+	"fmt"
 	"log/slog"
 	"net"
 	"net/url"
@@ -23,7 +25,23 @@ const (
 	publishInterval = time.Second * 5
 )
 
+// version is overridden at release build time via
+// -ldflags "-X main.version=<tag>" (see .github/workflows/release.yml), so
+// `health-service --version` reports the actual release tag rather than the
+// binary's mtime -- the minilab-agent systemd discovery can exec this flag
+// to get a real version instead of guessing from the file's mtime.
+var version = "dev"
+
 func main() {
+	versionFlag := flag.Bool("version", false, "print the version and exit")
+	flag.Parse()
+
+	if *versionFlag {
+		fmt.Println(version)
+
+		return
+	}
+
 	e := loadEnv()
 	initLog(e.LogLevel)
 
